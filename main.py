@@ -1,5 +1,5 @@
 import requests
-import re
+from datetime import datetime
 from bs4 import BeautifulSoup
 
 
@@ -35,7 +35,12 @@ if __name__ == '__main__':
 
     sourceFile.close()
     source = open("source.txt", "r")
-    output = open("output.txt", "a")
+    output = open("output.txt", "w")
+
+    today = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+
+    output.write("Last Updated: " + today + " (GMT+10)")
+    output.write('\n')
 
     # look through each article
     for articleListSorted in articleListSorted:
@@ -44,22 +49,25 @@ if __name__ == '__main__':
 
         output.write(postURL)
 
-        # get and parse article HTLM
-        pageReq = requests.get(postURL)
-        parsedPage = BeautifulSoup(pageReq.content, 'html.parser')
+        try:
+            # get and parse article HTML
+            pageReq = requests.get(postURL)
+            parsedPage = BeautifulSoup(pageReq.content, 'html.parser')
 
-        # search for any HTML tags <p class='gnt_ar_b_p'> (i.e. the actual text of the article)
-        foundParagraphs = parsedPage.find_all('p', class_='gnt_ar_b_p')
+            # search for any HTML tags <p class='gnt_ar_b_p'> (i.e. the actual text of the article)
+            foundParagraphs = parsedPage.find_all('p', class_='gnt_ar_b_p')
 
-        # print all text instances of <p class=gnt_ar_b_p>
-        for x in foundParagraphs:
-            # print(x.text)
-            # print('\n')
-            output.write(x.text.encode('utf8'))
-            output.write('\n')
+            # print all text instances of <p class=gnt_ar_b_p>
+            for x in foundParagraphs:
+                # print(x.text)
+                # print('\n')
+                output.write(x.text.encode('utf8'))
+                output.write('\n')
 
-        # print('\n\n')
-        output.write('\n\n')
+            # print('\n\n')
+            output.write('\n\n')
+        except requests.exceptions.MissingSchema:
+            break
 
 
 
